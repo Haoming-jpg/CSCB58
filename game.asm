@@ -41,7 +41,8 @@
 .eqv PINK 0xe57373
 .eqv RED 0xf44336
 .eqv BROWN 0x795548
-
+.eqv FIREBOTTOM 0x1000BF00
+.eqv CAT_INITIAL 0x10008220
 
 
 .text
@@ -54,7 +55,7 @@ main:
 	li $t4, PINK		# t4 stores pink
 	li $t5, CAYN		# t5 stores cayn
 	li $t6, BROWN		# t6 stores brown
-	li $t7, MID_ADDRESS	# t7 stores brown
+	li $t7, MID_ADDRESS	# t7 stores mid address
 	
 	# draw a cat
 	sw $t1, 548($t0)
@@ -66,7 +67,7 @@ main:
 	sw $t1, 816($t0)
 	sw $t1, 820($t0)
 	sw $t5, 824($t0)
-	sw $t3, 1044($t0)
+
 	sw $t1, 1056($t0)
 	sw $t1, 1060($t0)
 	sw $t1, 1064($t0)
@@ -74,16 +75,16 @@ main:
 	sw $t1, 1072($t0)
 	sw $t1, 1076($t0)
 	sw $t1, 1080($t0)
-	sw $t1, 1088($t0)
-	sw $t1, 1296($t0)
+
+
 	sw $t1, 1316($t0)
 	sw $t1, 1320($t0)
 	sw $t2, 1324($t0)
 	sw $t1, 1328($t0)
 	sw $t1, 1332($t0)
 	sw $t2, 1336($t0)
-	sw $t1, 1340($t0)
-	sw $t1, 1552($t0)
+
+
 	sw $t1, 1568($t0)
 	sw $t1, 1572($t0)
 	sw $t1, 1576($t0)
@@ -91,30 +92,29 @@ main:
 	sw $t1, 1584($t0)
 	sw $t1, 1588($t0)
 	sw $t1, 1592($t0)
-	sw $t1, 1600($t0)
+
 	
-	sw $t1, 1808($t0)
+
 	sw $t3, 1832($t0)
 	sw $t3, 1836($t0)
 	sw $t3, 1840($t0)
 	sw $t3, 1844($t0)
-	sw $t1, 2068($t0)
-	sw $t1, 2084($t0)
+	
+
+	sw $t1, 2080($t0)
 	sw $t1, 2088($t0)
 	sw $t3, 2092($t0)
 	sw $t3, 2096($t0)
 	sw $t3, 2100($t0)
-	sw $t1, 2328($t0)
-	sw $t1, 2332($t0)
-	sw $t1, 2336($t0)
+	
+
 	sw $t1, 2340($t0)
 	sw $t1, 2344($t0)
 	sw $t1, 2348($t0)
 	sw $t3, 2352($t0)
 	sw $t1, 2356($t0)
-	sw $t1, 2584($t0)
-	sw $t1, 2588($t0)
-	sw $t1, 2592($t0)
+	
+
 	sw $t1, 2596($t0)
 	sw $t4, 2600($t0)
 	sw $t1, 2604($t0)
@@ -123,10 +123,7 @@ main:
 	sw $t4, 2616($t0)
 	
 	# draw 3 basic platform
-	# first one
-	sw $t6, 2832($t0)
-	sw $t6, 2836($t0)
-	sw $t6, 2840($t0)
+	# first one x = 11 y = 28
 	sw $t6, 2844($t0)
 	sw $t6, 2848($t0)
 	sw $t6, 2852($t0)
@@ -166,6 +163,54 @@ main:
 	sw $t6, 4796($t7)
 	sw $t6, 4800($t7)
 	sw $t6, 4804($t7)
+	
+	#draw fire at bottom
+	li $t7, FIREBOTTOM	# t7 = the address of firebottom
+	li $t8, 32
+
+FIRE_L1:
+	beq $t8, $zero, END_FIRE_L1
+	sw $t3, 0($t7)
+	addi $t7, $t7, 8
+	addi $t8, $t8, -1
+	j FIRE_L1
+END_FIRE_L1:
+	li $t7, FIREBOTTOM	# t7 = the address of firebottom
+	li $t8, 32
+	addi $t7, $t7, 4
+FIRE_L2:
+	beq $t8, $zero, END_FIRE_L2
+	sw $t2, 0($t7)
+	addi $t7, $t7, 8
+	addi $t8, $t8, -1
+	j FIRE_L2
+END_FIRE_L2:
+	li $t7, FIREBOTTOM	# t7 = the address of firebottom
+	li $t8, 32
+	addi $t7, $t7, -252
+FIRE_L3:
+	beq $t8, $zero, END_FIRE_L3
+	sw $t3, 0($t7)
+	addi $t7, $t7, 8
+	addi $t8, $t8, -1
+	j main_loop
+
+main_loop:
+	# main loop of game
+	li $t9, 0xffff0000 	# set t9 to keyboard
+	lw $t8, 0($t9)
+	beq $t8, 1, keypress_happened
+	j main_loop
+keypress_happened:
+	lw $t8, 4($t9)
+	beq $t8, 100, right	# if keypress = d branch to right
+	beq $t8, 97, left	# else if key press = a branch to left
+	beq $t8, 119, up	# if key press = w branch to up
+	beq $t8, 115, down	# else if key press = s branch to down
+	
+right:
+	
+	
 	
 	li $v0, 10 # terminate the program gracefully
 	syscall

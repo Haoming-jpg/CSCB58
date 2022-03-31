@@ -244,24 +244,53 @@ keypress_happened:
 	
 right:
 
-	j erase_cat
-end_erase_right:
 	
-
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	add $a0, $zero, $s1	# get the address of cat
+	jal erase_cat
+	
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
 	j return
 	
 left:
-
-up:
-
-down:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	add $a0, $zero, $s1	# get the address of cat
+	jal erase_cat
 	
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j return
+up:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	add $a0, $zero, $s1	# get the address of cat
+	jal erase_cat
+	
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j return
+down:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	add $a0, $zero, $s1	# get the address of cat
+	jal erase_cat
+	
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j return
 	
 
 
 erase_cat:
 
-	add $t0, $zero, $s1	# get the address of cat
+	add $t0, $zero, $a0	# get the address of cat
 	li $t1, CAT_X_LEN	# load the size of cat
 	
 	li $t3, BLACK
@@ -284,7 +313,7 @@ end_erase_y:
 	
 	
 end_erase:
-	j end_erase_right
+	jr $ra
 
 
 END_PROGRAM:

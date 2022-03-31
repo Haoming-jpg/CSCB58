@@ -41,9 +41,12 @@
 .eqv PINK 0xe57373
 .eqv RED 0xf44336
 .eqv BROWN 0x795548
+.eqv BLACK 0x000000
 .eqv FIREBOTTOM 0x1000BF00
 .eqv CAT_INITIAL 0x10008220
-
+.eqv CAT_X_LEN 9
+.eqv CAT_Y_LEN 7
+.eqv SLEEP 40
 
 .text
 .globl main
@@ -55,7 +58,7 @@ main:
 	li $t4, PINK		# t4 stores pink
 	li $t5, CAYN		# t5 stores cayn
 	li $t6, BROWN		# t6 stores brown
-	li $t7, MID_ADDRESS	# t7 stores mid address
+	li $t7, MID_ADDRESS	# t7 stores mid_address
 	
 	# draw a cat
 	sw $t1, 548($t0)
@@ -193,14 +196,45 @@ FIRE_L3:
 	sw $t3, 0($t7)
 	addi $t7, $t7, 8
 	addi $t8, $t8, -1
-	j main_loop
-
+	j FIRE_L3
+END_FIRE_L3:
+	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
+	sw $t1, 0($s0)
+	
 main_loop:
 	# main loop of game
+	
+	addi $sp, $sp, -4	# push the address of cat to the stack
+	sw $s0, 0($sp)
+	jal is_keypress_happened #jump to the function keypress_happened
+	
+	lw $s0, 0($sp)		# get the new address of cat
+	addi $sp, $sp, 4
+
+
+sleep:
+	li $v0, 32
+	li $a0, SLEEP		# sleep for 40ms
+	syscall
+        
+        j main_loop
+
+# int keypress_happened(int cat_address) returns the new cat address
+is_keypress_happened:
+	lw $s1, 0($sp)		# get the cat address
+	addi $sp, $sp, 4
+	
+	sw $t7, 0($sp)
 	li $t9, 0xffff0000 	# set t9 to keyboard
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress_happened
-	j main_loop
+
+return:
+	addi $sp, $sp, -4	# push return value(new cat address)
+	sw $s1, 0($sp)
+	
+	jr $ra
+
 keypress_happened:
 	lw $t8, 4($t9)
 	beq $t8, 100, right	# if keypress = d branch to right
@@ -209,8 +243,50 @@ keypress_happened:
 	beq $t8, 115, down	# else if key press = s branch to down
 	
 right:
+
+	j erase_cat
+end_erase_right:
+	
+
+	j return
+	
+left:
+
+up:
+
+down:
 	
 	
+
+
+erase_cat:
+
+	add $t0, $zero, $s1	# get the address of cat
+	li $t1, CAT_X_LEN	# load the size of cat
 	
+	li $t3, BLACK
+
+erase_x_loop:
+	beq $t1, $zero, end_erase
+	li $t2, CAT_Y_LEN
+	
+erase_y_loop:
+	beq $t2, $zero, end_erase_y
+	sw $t3, 0($t0)
+	
+	addi $t2, $t2, -1
+	addi $t0, $t0, 4
+	j erase_y_loop
+end_erase_y:
+	addi $t1, $t1, -1
+	addi $t0, $t0, 228
+	j erase_x_loop
+	
+	
+end_erase:
+	j end_erase_right
+
+
+END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully
 	syscall

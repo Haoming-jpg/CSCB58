@@ -42,6 +42,7 @@
 .eqv RED 0xf44336
 .eqv BROWN 0x795548
 .eqv BLACK 0x000000
+.eqv GRAY 0x9e9e9e
 .eqv FIREBOTTOM 0x1000BF00
 .eqv CAT_INITIAL 0x10008220
 .eqv CAT_X_LEN 9
@@ -167,6 +168,36 @@ main:
 	sw $t6, 4800($t7)
 	sw $t6, 4804($t7)
 	
+	# draw up walls
+	li $t7, BASE_ADDRESS
+	li $t8, 64
+	li $t9, GRAY
+	
+draw_up_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 4
+	addi $t8, $t8, -1
+	bnez $t8, draw_up_wall
+	
+	#draw left walls
+	li $t7, BASE_ADDRESS
+	li $t8, 63
+draw_left_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 256
+	addi $t8, $t8, -1
+	bnez $t8, draw_left_wall
+	
+	#draw right walls
+	li $t7, BASE_ADDRESS
+	addi $t7, $t7, 252
+	li $t8, 63
+draw_right_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 256
+	addi $t8, $t8, -1
+	bnez $t8, draw_right_wall
+	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
 
@@ -226,15 +257,6 @@ is_keypress_happened:
 	lw $s1, 0($sp)		# get the cat address
 	addi $sp, $sp, 4
 	
-	li $t0, 64		# t0 = 64
-	add $t1, $s1, $zero	# t1 is the address of the cat(use for this function)
-	li $t2, BASE_ADDRESS	# t2 = base address
-	sub $t1, $t1, $t2	# t1 = offset of the cat address respect to the base address
-	div $t1, $t0		# LO = quotient, HI = remainder
-	mflo $t3		# t3 = 4x
-	mfhi $t4		# t4 = 4y
-	div $t3, $t3, 4		# t3 = x
-	div $t4, $t4, 4		# t4 = y
 	
 	sw $t7, 0($sp)
 	li $t9, 0xffff0000 	# set t9 to keyboard
@@ -255,9 +277,26 @@ keypress_happened:
 	beq $t8, 115, down	# else if key press = s branch to down
 	
 right:
-	li $t5, 56
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, 28
+	li $t1, GRAY
+	lw $t2, 0($t0)		# check whether cat touch the wall
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
 
-	beq $t4, $t5, key_press_return
+
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, 28
+	li $t3, CAT_X_LEN
+right_collision_loop:
+	li $t1, BROWN
+	lw $t2, 0($t0)		# check the collision of the platforms
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	addi $t0, $t0, 256
+	addi $t3, $t3, -1
+	bnez $t3, right_collision_loop
+	
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
@@ -273,7 +312,26 @@ right:
 	j key_press_return
 	
 left:
-	beqz $t4, key_press_return	# if the cat touch the left edge
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+
+	addi $t0, $t0, -4
+	li $t1, GRAY
+	lw $t2, 0($t0)		# check whether cat touch the wall
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, -4
+	li $t3, CAT_X_LEN
+left_collision_loop:
+	li $t1, BROWN
+	lw $t2, 0($t0)		# check the collision of the platforms
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	addi $t0, $t0, 256
+	addi $t3, $t3, -1
+	bnez $t3, left_collision_loop
+	
 	
 	
 	addi $sp, $sp, -4	# push ra
@@ -289,7 +347,26 @@ left:
 	addi $sp, $sp, 4
 	j key_press_return
 up:
-	beqz $t3, key_press_return	# if the cat touch the up edge
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+
+	addi $t0, $t0, -256
+	li $t1, GRAY
+	lw $t2, 0($t0)		# check whether cat touch the wall
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, -256
+	li $t3, CAT_Y_LEN
+up_collision_loop:
+	li $t1, BROWN
+	lw $t2, 0($t0)		# check the collision of the platforms
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	addi $t0, $t0, 4
+	addi $t3, $t3, -1
+	bnez $t3, up_collision_loop
+	
 	
 	
 	addi $sp, $sp, -4	# push ra
@@ -305,6 +382,20 @@ up:
 	addi $sp, $sp, 4
 	j key_press_return
 down:
+
+	add $t0, $s1, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, 2304
+	li $t3, CAT_Y_LEN
+down_collision_loop:
+	li $t1, BROWN
+	lw $t2, 0($t0)		# check the collision of the platforms
+	sub $t2, $t2, $t1
+	beqz $t2, key_press_return
+	addi $t0, $t0, 4
+	addi $t3, $t3, -1
+	bnez $t3, down_collision_loop
+	
+	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $s1	# get the address of cat

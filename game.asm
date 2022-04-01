@@ -169,6 +169,7 @@ main:
 	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
+
 	li $t8, 32
 
 FIRE_L1:
@@ -199,7 +200,6 @@ FIRE_L3:
 	j FIRE_L3
 END_FIRE_L3:
 	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
-	sw $t1, 0($s0)
 	
 main_loop:
 	# main loop of game
@@ -219,17 +219,29 @@ sleep:
         
         j main_loop
 
+
+#####################################################################
 # int keypress_happened(int cat_address) returns the new cat address
 is_keypress_happened:
 	lw $s1, 0($sp)		# get the cat address
 	addi $sp, $sp, 4
+	
+	li $t0, 64		# t0 = 64
+	add $t1, $s1, $zero	# t1 is the address of the cat(use for this function)
+	li $t2, BASE_ADDRESS	# t2 = base address
+	sub $t1, $t1, $t2	# t1 = offset of the cat address respect to the base address
+	div $t1, $t0		# LO = quotient, HI = remainder
+	mflo $t3		# t3 = 4x
+	mfhi $t4		# t4 = 4y
+	div $t3, $t3, 4		# t3 = x
+	div $t4, $t4, 4		# t4 = y
 	
 	sw $t7, 0($sp)
 	li $t9, 0xffff0000 	# set t9 to keyboard
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress_happened
 
-return:
+key_press_return:
 	addi $sp, $sp, -4	# push return value(new cat address)
 	sw $s1, 0($sp)
 	
@@ -243,51 +255,73 @@ keypress_happened:
 	beq $t8, 115, down	# else if key press = s branch to down
 	
 right:
+	li $t5, 56
 
+	beq $t4, $t5, key_press_return
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $s1	# get the address of cat
 	jal erase_cat
 	
+	add $s1, $s1, 4		# cat moves right
+	add $a0, $zero, $s1	# get the address of cat
+	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
-	j return
+	j key_press_return
 	
 left:
+	beqz $t4, key_press_return	# if the cat touch the left edge
+	
+	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $s1	# get the address of cat
 	jal erase_cat
 	
+	add $s1, $s1, -4	# cat moves left
+	add $a0, $zero, $s1	# get the address of cat
+	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
-	j return
+	j key_press_return
 up:
+	beqz $t3, key_press_return	# if the cat touch the up edge
+	
+	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $s1	# get the address of cat
 	jal erase_cat
 	
+	add $s1, $s1, -256	# cat moves up
+	add $a0, $zero, $s1	# get the address of cat
+	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
-	j return
+	j key_press_return
 down:
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $s1	# get the address of cat
 	jal erase_cat
 	
+	add $s1, $s1, +256	# cat moves down
+	add $a0, $zero, $s1	# get the address of cat
+	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
-	j return
-	
+	j key_press_return
+#####################################################################
 
 
+#####################################################################
+# void erase_cat(int cat_address)
 erase_cat:
 
 	add $t0, $zero, $a0	# get the address of cat
@@ -314,8 +348,81 @@ end_erase_y:
 	
 end_erase:
 	jr $ra
+#####################################################################
 
-
+#####################################################################
+# void draw_cat(int cat_address)
+draw_cat:
+	add $t0, $zero, $a0	# get the address of cat
+	li $t1, WHITE		# t1 stores white
+	li $t2, YELLOW		# t2 stores yellow
+	li $t3, RED		# t3 stores RED
+	li $t4, PINK		# t4 stores pink
+	li $t5, CAYN		# t5 stores cayn
+	li $t6, BROWN		# t6 stores brown
+	
+	# start drawing
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 24($t0)
+	
+	sw $t1, 260($t0)
+	sw $t5, 264($t0)
+	sw $t1, 268($t0)
+	sw $t1, 272($t0)
+	sw $t1, 276($t0)
+	sw $t5, 280($t0)
+	
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 520($t0)
+	sw $t1, 524($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 536($t0)
+	
+	sw $t1, 772($t0)
+	sw $t1, 776($t0)
+	sw $t2, 780($t0)
+	sw $t1, 784($t0)
+	sw $t1, 788($t0)
+	sw $t2, 792($t0)
+	
+	sw $t1, 1024($t0)
+	sw $t1, 1028($t0)
+	sw $t1, 1032($t0)
+	sw $t1, 1036($t0)
+	sw $t1, 1040($t0)
+	sw $t1, 1044($t0)
+	sw $t1, 1048($t0)
+	
+	sw $t3, 1288($t0)
+	sw $t3, 1292($t0)
+	sw $t3, 1296($t0)
+	sw $t3, 1300($t0)
+	
+	sw $t1, 1536($t0)
+	sw $t1, 1544($t0)
+	sw $t3, 1548($t0)
+	sw $t3, 1552($t0)
+	sw $t3, 1556($t0)
+	
+	sw $t1, 1796($t0)
+	sw $t1, 1800($t0)
+	sw $t1, 1804($t0)
+	sw $t3, 1808($t0)
+	sw $t1, 1812($t0)
+	
+	sw $t1, 2052($t0)
+	sw $t4, 2056($t0)
+	sw $t1, 2060($t0)
+	sw $t1, 2064($t0)
+	sw $t1, 2068($t0)
+	sw $t4, 2072($t0)
+	
+	jr $ra
+	
+#####################################################################
 END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully
 	syscall

@@ -48,6 +48,7 @@
 .eqv CAT_X_LEN 9
 .eqv CAT_Y_LEN 7
 .eqv SLEEP 40
+.eqv GRAVITY_LOOP 8
 
 .text
 .globl main
@@ -236,6 +237,7 @@ draw_right_wall:
 
 
 	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
+	li $s6, GRAVITY_LOOP		# set the loop of gravity
 	
 main_loop:
 	# main loop of game
@@ -246,6 +248,14 @@ main_loop:
 	
 	lw $s0, 0($sp)		# get the new address of cat
 	addi $sp, $sp, 4
+	
+	
+	beqz $s6, do_gravity
+	addi $s6, $s6, -1
+	
+continue_main_loop:
+
+
 
 
 sleep:
@@ -254,7 +264,14 @@ sleep:
 	syscall
         
         j main_loop
-
+do_gravity:
+	li $s6, GRAVITY_LOOP		# set the loop of gravity
+	addi $sp, $sp, -4	# push the address of cat to the stack
+	sw $s0, 0($sp)
+	jal gravity
+	lw $s0, 0($sp)		# get the new address of cat
+	addi $sp, $sp, 4
+	j continue_main_loop
 
 #####################################################################
 # int keypress_happened(int cat_address) returns the new cat address
@@ -267,7 +284,7 @@ is_keypress_happened:
 	li $t9, 0xffff0000 	# set t9 to keyboard
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress_happened
-
+#	j down		# this is the gravity
 key_press_return:
 	addi $sp, $sp, -4	# push return value(new cat address)
 	sw $s1, 0($sp)
@@ -279,7 +296,7 @@ keypress_happened:
 	beq $t8, 100, right	# if keypress = d branch to right
 	beq $t8, 97, left	# else if key press = a branch to left
 	beq $t8, 119, up	# if key press = w branch to up
-	beq $t8, 115, down	# else if key press = s branch to down
+#	beq $t8, 115, down	# else if key press = s branch to down
 	beq $t8, 112, restart	# else if key press = p branch to restart
 	
 right:
@@ -387,8 +404,14 @@ up_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
-down:
+#####################################################################
+	
 
+#####################################################################
+# int gravity(int cat_address) moves cat one pixel down and return the new address of the cat
+gravity:
+	lw $s1, 0($sp)		# get the cat address
+	addi $sp, $sp, 4
 	add $t0, $s1, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 2304
 	li $t3, CAT_Y_LEN
@@ -396,7 +419,7 @@ down_collision_loop:
 	li $t1, BROWN
 	lw $t2, 0($t0)		# check the collision of the platforms
 	sub $t2, $t2, $t1
-	beqz $t2, key_press_return
+	beqz $t2, gravity_down
 	addi $t0, $t0, 4
 	addi $t3, $t3, -1
 	bnez $t3, down_collision_loop
@@ -413,8 +436,14 @@ down_collision_loop:
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
-	j key_press_return
-	
+gravity_down:
+	addi $sp, $sp, -4	# push return value(new cat address)
+	sw $s1, 0($sp)
+	jr $ra
+
+#####################################################################
+
+
 restart:
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)

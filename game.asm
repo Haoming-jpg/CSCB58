@@ -43,7 +43,7 @@
 .eqv BROWN 0x795548
 .eqv BLACK 0x000000
 .eqv GRAY 0x9e9e9e
-.eqv FIREBOTTOM 0x1000BF00
+.eqv FIREBOTTOM 0x1000B900
 .eqv CAT_INITIAL 0x10008220
 .eqv CAT_X_LEN 9
 .eqv CAT_Y_LEN 7
@@ -168,35 +168,7 @@ main:
 	sw $t6, 4800($t7)
 	sw $t6, 4804($t7)
 	
-	# draw up walls
-	li $t7, BASE_ADDRESS
-	li $t8, 64
-	li $t9, GRAY
-	
-draw_up_wall:
-	sw $t9, 0($t7)
-	addi $t7, $t7, 4
-	addi $t8, $t8, -1
-	bnez $t8, draw_up_wall
-	
-	#draw left walls
-	li $t7, BASE_ADDRESS
-	li $t8, 63
-draw_left_wall:
-	sw $t9, 0($t7)
-	addi $t7, $t7, 256
-	addi $t8, $t8, -1
-	bnez $t8, draw_left_wall
-	
-	#draw right walls
-	li $t7, BASE_ADDRESS
-	addi $t7, $t7, 252
-	li $t8, 63
-draw_right_wall:
-	sw $t9, 0($t7)
-	addi $t7, $t7, 256
-	addi $t8, $t8, -1
-	bnez $t8, draw_right_wall
+
 	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
@@ -230,6 +202,39 @@ FIRE_L3:
 	addi $t8, $t8, -1
 	j FIRE_L3
 END_FIRE_L3:
+	# draw up walls
+	li $t7, BASE_ADDRESS
+	li $t8, 64
+	li $t9, GRAY
+	
+draw_up_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 4
+	addi $t8, $t8, -1
+	bnez $t8, draw_up_wall
+	
+	#draw left walls
+	li $t7, BASE_ADDRESS
+	li $t8, 64
+draw_left_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 256
+	addi $t8, $t8, -1
+	bnez $t8, draw_left_wall
+	
+	#draw right walls
+	li $t7, BASE_ADDRESS
+	addi $t7, $t7, 252
+	li $t8, 64
+draw_right_wall:
+	sw $t9, 0($t7)
+	addi $t7, $t7, 256
+	addi $t8, $t8, -1
+	bnez $t8, draw_right_wall
+
+
+
+
 	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
 	
 main_loop:
@@ -275,6 +280,7 @@ keypress_happened:
 	beq $t8, 97, left	# else if key press = a branch to left
 	beq $t8, 119, up	# if key press = w branch to up
 	beq $t8, 115, down	# else if key press = s branch to down
+	beq $t8, 112, restart	# else if key press = p branch to restart
 	
 right:
 	add $t0, $s1, $zero	# t0 stores the address of the cat
@@ -408,6 +414,15 @@ down_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
+	
+restart:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	jal clean_all
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j main
 #####################################################################
 
 
@@ -514,6 +529,22 @@ draw_cat:
 	jr $ra
 	
 #####################################################################
+
+#####################################################################
+#void clean_all()    clean all things in the screen
+clean_all:
+	li $t0, BASE_ADDRESS
+	li $t1, BLACK
+	li $t2, 4096
+clean_all_loop:
+	sw $t1, 0($t0)
+	addi $t0, $t0, 4
+	addi $t2, $t2, -1
+	bnez $t2, clean_all_loop
+	jr $ra
+
+#####################################################################
+
 END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully
 	syscall

@@ -295,22 +295,14 @@ check_gg_loop:
 
 gg:
 	addi $s5, $s5, -1
-#	# check whether the player want to restart
-#	sw $t7, 0($sp)	li $t9, 0xffff0000 	# set t9 to keyboard
-#	lw $t8, 0($t9)
-#	beq $t8, 1, press_when_gg
 
+	jal gg_keypress_happened
 	blt $s5, -1, sleep
 	# fist time attach here
 	jal clean_all
 	jal draw_gg
 	j sleep
-#press_when_gg:
-#	beq $t8, 0x70, gg_restart	# else if key press = p branch to restart
-#	j sleep
-#gg_restart:
-#	jal clean_all
-#	j main
+
 #####################################################################
 # int keypress_happened(int cat_address) returns the new cat address
 is_keypress_happened:
@@ -318,7 +310,7 @@ is_keypress_happened:
 	addi $sp, $sp, 4
 	
 	
-	sw $t7, 0($sp)
+
 	li $t9, 0xffff0000 	# set t9 to keyboard
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress_happened
@@ -336,7 +328,7 @@ keypress_happened:
 	beq $t8, 0x77, up	# if key press = w branch to up
 #	beq $t8, 115, down	# else if key press = s branch to down
 	beq $t8, 0x70, restart	# else if key press = p branch to restart
-	
+	j key_press_return
 right:
 	add $t0, $s1, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 28
@@ -775,6 +767,36 @@ draw_gg:
 
 
 	jr $ra
+#####################################################################
+
+#####################################################################
+# void gg_keypress_happend()
+gg_keypress_happened:
+	li $t9, 0xffff0000 	# set t9 to keyboard
+	lw $t8, 0($t9)
+	beq $t8, 1, gg_keypress
+gg_keypress_return:
+	addi $sp, $sp, -4	# push return value(new cat address)
+	sw $s1, 0($sp)
+	
+	jr $ra
+
+gg_keypress:
+	lw $t8, 4($t9)
+	beq $t8, 0x70, gg_restart	# else if key press = p branch to restart
+	j gg_keypress_return
+gg_restart:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	jal clean_all
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j main
+	j gg_keypress_return
+
+
+
 #####################################################################
 END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully

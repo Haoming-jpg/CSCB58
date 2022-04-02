@@ -48,8 +48,10 @@
 .eqv CAT_X_LEN 9
 .eqv CAT_Y_LEN 7
 .eqv SLEEP 40
-.eqv GRAVITY_LOOP 8
-
+.eqv GRAVITY_LOOP 1
+.eqv points 0x1000DC00		# x = 60
+.eqv FIRST_G 0x10009944 	# 25, 17
+.eqv SECOND_G 0x10009994 	# 25, 37
 .text
 .globl main
 main:
@@ -238,10 +240,14 @@ draw_right_wall:
 
 	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
 	li $s6, GRAVITY_LOOP		# set the loop of gravity
+	li $s5, 0		# if s5 = -1 then gg
 	
 main_loop:
 	# main loop of game
+	ble $s5, -1, gg
+	j check_gg
 	
+not_gg:
 	addi $sp, $sp, -4	# push the address of cat to the stack
 	sw $s0, 0($sp)
 	jal is_keypress_happened #jump to the function keypress_happened
@@ -273,6 +279,38 @@ do_gravity:
 	addi $sp, $sp, 4
 	j continue_main_loop
 
+check_gg:
+	add $t0, $s0, $zero	# t0 stores the address of the cat
+	addi $t0, $t0, 2304
+	li $t3, CAT_Y_LEN
+check_gg_loop:
+	li $t1, RED
+	lw $t2, 0($t0)		# check whether the cat touch the fire
+	sub $t2, $t2, $t1
+	beqz $t2, gg
+	addi $t0, $t0, 4
+	addi $t3, $t3, -1
+	bnez $t3, check_gg_loop
+	j not_gg
+
+gg:
+	addi $s5, $s5, -1
+#	# check whether the player want to restart
+#	sw $t7, 0($sp)	li $t9, 0xffff0000 	# set t9 to keyboard
+#	lw $t8, 0($t9)
+#	beq $t8, 1, press_when_gg
+
+	blt $s5, -1, sleep
+	# fist time attach here
+	jal clean_all
+	jal draw_gg
+	j sleep
+#press_when_gg:
+#	beq $t8, 0x70, gg_restart	# else if key press = p branch to restart
+#	j sleep
+#gg_restart:
+#	jal clean_all
+#	j main
 #####################################################################
 # int keypress_happened(int cat_address) returns the new cat address
 is_keypress_happened:
@@ -293,11 +331,11 @@ key_press_return:
 
 keypress_happened:
 	lw $t8, 4($t9)
-	beq $t8, 100, right	# if keypress = d branch to right
-	beq $t8, 97, left	# else if key press = a branch to left
-	beq $t8, 119, up	# if key press = w branch to up
+	beq $t8, 0x64, right	# if keypress = d branch to right
+	beq $t8, 0x61, left	# else if key press = a branch to left
+	beq $t8, 0x77, up	# if key press = w branch to up
 #	beq $t8, 115, down	# else if key press = s branch to down
-	beq $t8, 112, restart	# else if key press = p branch to restart
+	beq $t8, 0x70, restart	# else if key press = p branch to restart
 	
 right:
 	add $t0, $s1, $zero	# t0 stores the address of the cat
@@ -404,6 +442,15 @@ up_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
+
+restart:
+	addi $sp, $sp, -4	# push ra
+	sw $ra, 0($sp)
+	jal clean_all
+	
+	lw $ra, 0($sp)		# restore ra
+	addi $sp, $sp, 4
+	j main
 #####################################################################
 	
 
@@ -441,17 +488,6 @@ gravity_down:
 	sw $s1, 0($sp)
 	jr $ra
 
-#####################################################################
-
-
-restart:
-	addi $sp, $sp, -4	# push ra
-	sw $ra, 0($sp)
-	jal clean_all
-	
-	lw $ra, 0($sp)		# restore ra
-	addi $sp, $sp, 4
-	j main
 #####################################################################
 
 
@@ -574,6 +610,172 @@ clean_all_loop:
 
 #####################################################################
 
+
+#####################################################################
+# void draw_gg()
+draw_gg:
+	li, $t0, WHITE
+	li, $t1, FIRST_G
+	# draw first G
+	sw, $t0, 16($t1)
+	sw, $t0, 20($t1)
+	sw, $t0, 24($t1)
+	sw, $t0, 28($t1)
+	sw, $t0, 32($t1)
+	sw, $t0, 36($t1)
+	sw, $t0, 44($t1)
+	
+	sw, $t0, 268($t1)
+	sw, $t0, 272($t1)
+	sw, $t0, 292($t1)
+	sw, $t0, 296($t1)
+	sw, $t0, 300($t1)
+	
+	sw, $t0, 520($t1)
+	sw, $t0, 552($t1)
+	sw, $t0, 556($t1)
+
+	sw, $t0, 772($t1)
+	sw, $t0, 776($t1)
+	sw, $t0, 808($t1)
+	sw, $t0, 812($t1)
+	
+	sw, $t0, 1024($t1)
+	sw, $t0, 1028($t1)
+	sw, $t0, 1068($t1)
+	
+	sw, $t0, 1280($t1)
+	sw, $t0, 1284($t1)
+	
+	sw, $t0, 1536($t1)
+	sw, $t0, 1540($t1)
+	
+	sw, $t0, 1792($t1)
+	sw, $t0, 1796($t1)
+	sw, $t0, 1824($t1)
+	sw, $t0, 1828($t1)
+	sw, $t0, 1832($t1)
+	sw, $t0, 1836($t1)
+	sw, $t0, 1840($t1)
+	sw, $t0, 1844($t1)
+	
+	sw, $t0, 2048($t1)
+	sw, $t0, 2052($t1)
+	sw, $t0, 2088($t1)
+	sw, $t0, 2092($t1)
+
+	sw, $t0, 2304($t1)
+	sw, $t0, 2308($t1)
+	sw, $t0, 2344($t1)
+	sw, $t0, 2348($t1)
+	
+	sw, $t0, 2564($t1)
+	sw, $t0, 2568($t1)
+	sw, $t0, 2600($t1)
+	sw, $t0, 2604($t1)
+	
+	sw, $t0, 2820($t1)
+	sw, $t0, 2824($t1)
+	sw, $t0, 2828($t1)
+	sw, $t0, 2856($t1)
+	sw, $t0, 2860($t1)
+	
+	sw, $t0, 3080($t1)
+	sw, $t0, 3084($t1)
+	sw, $t0, 3088($t1)
+	sw, $t0, 3108($t1)
+	sw, $t0, 3112($t1)
+	sw, $t0, 3116($t1)
+	
+	sw, $t0, 3344($t1)
+	sw, $t0, 3348($t1)
+	sw, $t0, 3352($t1)
+	sw, $t0, 3356($t1)
+	sw, $t0, 3360($t1)
+	sw, $t0, 3364($t1)
+
+	li, $t1, SECOND_G
+	# draw second G
+	sw, $t0, 16($t1)
+	sw, $t0, 20($t1)
+	sw, $t0, 24($t1)
+	sw, $t0, 28($t1)
+	sw, $t0, 32($t1)
+	sw, $t0, 36($t1)
+	sw, $t0, 44($t1)
+	
+	sw, $t0, 268($t1)
+	sw, $t0, 272($t1)
+	sw, $t0, 292($t1)
+	sw, $t0, 296($t1)
+	sw, $t0, 300($t1)
+	
+	sw, $t0, 520($t1)
+	sw, $t0, 552($t1)
+	sw, $t0, 556($t1)
+
+	sw, $t0, 772($t1)
+	sw, $t0, 776($t1)
+	sw, $t0, 808($t1)
+	sw, $t0, 812($t1)
+	
+	sw, $t0, 1024($t1)
+	sw, $t0, 1028($t1)
+	sw, $t0, 1068($t1)
+	
+	sw, $t0, 1280($t1)
+	sw, $t0, 1284($t1)
+	
+	sw, $t0, 1536($t1)
+	sw, $t0, 1540($t1)
+	
+	sw, $t0, 1792($t1)
+	sw, $t0, 1796($t1)
+	sw, $t0, 1824($t1)
+	sw, $t0, 1828($t1)
+	sw, $t0, 1832($t1)
+	sw, $t0, 1836($t1)
+	sw, $t0, 1840($t1)
+	sw, $t0, 1844($t1)
+	
+	sw, $t0, 2048($t1)
+	sw, $t0, 2052($t1)
+	sw, $t0, 2088($t1)
+	sw, $t0, 2092($t1)
+
+	sw, $t0, 2304($t1)
+	sw, $t0, 2308($t1)
+	sw, $t0, 2344($t1)
+	sw, $t0, 2348($t1)
+	
+	sw, $t0, 2564($t1)
+	sw, $t0, 2568($t1)
+	sw, $t0, 2600($t1)
+	sw, $t0, 2604($t1)
+	
+	sw, $t0, 2820($t1)
+	sw, $t0, 2824($t1)
+	sw, $t0, 2828($t1)
+	sw, $t0, 2856($t1)
+	sw, $t0, 2860($t1)
+	
+	sw, $t0, 3080($t1)
+	sw, $t0, 3084($t1)
+	sw, $t0, 3088($t1)
+	sw, $t0, 3108($t1)
+	sw, $t0, 3112($t1)
+	sw, $t0, 3116($t1)
+	
+	sw, $t0, 3344($t1)
+	sw, $t0, 3348($t1)
+	sw, $t0, 3352($t1)
+	sw, $t0, 3356($t1)
+	sw, $t0, 3360($t1)
+	sw, $t0, 3364($t1)
+
+
+	jr $ra
+#####################################################################
 END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully
 	syscall

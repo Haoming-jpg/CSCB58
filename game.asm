@@ -556,7 +556,7 @@ moving_right:
 #####################################################################
 # int keypress_happened(int cat_address) returns the new cat address
 is_keypress_happened:
-	lw $s1, 0($sp)		# get the cat address
+	lw $t7, 0($sp)		# get the cat address
 	addi $sp, $sp, 4
 	
 	
@@ -567,7 +567,7 @@ is_keypress_happened:
 #	j down		# this is the gravity
 key_press_return:
 	addi $sp, $sp, -4	# push return value(new cat address)
-	sw $s1, 0($sp)
+	sw $t7, 0($sp)
 	
 	jr $ra
 
@@ -576,11 +576,10 @@ keypress_happened:
 	beq $t8, 0x64, right	# if keypress = d branch to right
 	beq $t8, 0x61, left	# else if key press = a branch to left
 	beq $t8, 0x77, up	# if key press = w branch to up
-#	beq $t8, 115, down	# else if key press = s branch to down
 	beq $t8, 0x70, restart	# else if key press = p branch to restart
 	j key_press_return
 right:
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 28
 	li $t1, GRAY
 	lw $t2, 0($t0)		# check whether cat touch the wall
@@ -588,7 +587,7 @@ right:
 	beqz $t2, key_press_return
 
 
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 28
 	li $t3, CAT_X_LEN
 right_collision_loop:
@@ -603,11 +602,11 @@ right_collision_loop:
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
-	add $a0, $zero, $s1	# get the address of cat
+	add $a0, $zero, $t7	# get the address of cat
 	jal erase_cat
 	
-	add $s1, $s1, 4		# cat moves right
-	add $a0, $zero, $s1	# get the address of cat
+	add $t7, $t7, 4		# cat moves right
+	add $a0, $zero, $t7	# get the address of cat
 	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
@@ -615,7 +614,7 @@ right_collision_loop:
 	j key_press_return
 	
 left:
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 
 	addi $t0, $t0, -4
 	li $t1, GRAY
@@ -623,7 +622,7 @@ left:
 	sub $t2, $t2, $t1
 	beqz $t2, key_press_return
 	
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, -4
 	li $t3, CAT_X_LEN
 left_collision_loop:
@@ -639,11 +638,11 @@ left_collision_loop:
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
-	add $a0, $zero, $s1	# get the address of cat
+	add $a0, $zero, $t7	# get the address of cat
 	jal erase_cat
 	
-	add $s1, $s1, -4	# cat moves left
-	add $a0, $zero, $s1	# get the address of cat
+	add $t7, $t7, -4	# cat moves left
+	add $a0, $zero, $t7	# get the address of cat
 	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
@@ -651,7 +650,7 @@ left_collision_loop:
 	j key_press_return
 	
 up:
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 
 	addi $t0, $t0, -256
 	li $t1, GRAY
@@ -659,7 +658,7 @@ up:
 	sub $t2, $t2, $t1
 	beqz $t2, key_press_return
 	
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, -256
 	li $t3, CAT_Y_LEN
 up_collision_loop:
@@ -675,11 +674,11 @@ up_collision_loop:
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
-	add $a0, $zero, $s1	# get the address of cat
+	add $a0, $zero, $t7	# get the address of cat
 	jal erase_cat
 	
-	add $s1, $s1, -256	# cat moves up
-	add $a0, $zero, $s1	# get the address of cat
+	add $t7, $t7, -256	# cat moves up
+	add $a0, $zero, $t7	# get the address of cat
 	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
@@ -700,9 +699,9 @@ restart:
 #####################################################################
 # int gravity(int cat_address) moves cat one pixel down and return the new address of the cat
 gravity:
-	lw $s1, 0($sp)		# get the cat address
+	lw $t7, 0($sp)		# get the cat address
 	addi $sp, $sp, 4
-	add $t0, $s1, $zero	# t0 stores the address of the cat
+	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 2304
 	li $t3, CAT_Y_LEN
 down_collision_loop:
@@ -717,18 +716,18 @@ down_collision_loop:
 	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
-	add $a0, $zero, $s1	# get the address of cat
+	add $a0, $zero, $t7	# get the address of cat
 	jal erase_cat
 	
-	add $s1, $s1, +256	# cat moves down
-	add $a0, $zero, $s1	# get the address of cat
+	add $t7, $t7, +256	# cat moves down
+	add $a0, $zero, $t7	# get the address of cat
 	jal draw_cat
 	
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 gravity_down:
 	addi $sp, $sp, -4	# push return value(new cat address)
-	sw $s1, 0($sp)
+	sw $t7, 0($sp)
 	jr $ra
 
 #####################################################################

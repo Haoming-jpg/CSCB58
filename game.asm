@@ -20,7 +20,7 @@
 # (See the assignment handout for the list of additional features)
 # 1. Fail condition
 # 2. moving platform
-# 3. (fill in the feature, if any)
+# 3. start menu
 # ... (add more if necessary)
 #
 # Link to video demonstration for final submission:
@@ -43,6 +43,7 @@
 .eqv BROWN 0x795548
 .eqv BLACK 0x000000
 .eqv GRAY 0x9e9e9e
+.eqv ARROW_COLOR 0x64ffda
 .eqv FIREBOTTOM 0x1000B900
 .eqv CAT_INITIAL 0x10008220
 .eqv CAT_X_LEN 9
@@ -59,13 +60,244 @@
 .eqv PF2 0x10009864 		# x = 24, y = 25 offset 6244
 .eqv PF3 0x1000A530		# x = 37 y = 12 offset 9520
 .eqv PF4 0x1000B2B0		# x = 50, y = 44 offset 12976
-
+.eqv START 0x10009440		# x = 20, y = 16
+.eqv EXIT 0x10009E40		# x = 30, y = 16
+.eqv START_ARROW 0x100094AC	# x = 20, y = 43
+.eqv EXIT_ARROW 0x10009E90	# x = 30, y = 36
 
 
 
 .text
 .globl main
 main:
+	# draw the menu
+	li $t0, START
+	li $t1, WHITE
+	# draw start
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 20($t0)
+	sw $t1, 24($t0)
+	sw $t1, 28($t0)
+	sw $t1, 32($t0)
+	sw $t1, 36($t0)
+	sw $t1, 48($t0)
+	sw $t1, 52($t0)	
+	sw $t1, 64($t0)
+	sw $t1, 68($t0)
+	sw $t1, 72($t0)
+	sw $t1, 84($t0)
+	sw $t1, 88($t0)
+	sw $t1, 92($t0)
+	sw $t1, 96($t0)
+	sw $t1, 100($t0)
+
+	
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 28($t0)
+	sw $t1, 44($t0)
+	sw $t1, 56($t0)
+	sw $t1, 64($t0)
+	sw $t1, 76($t0)
+	sw $t1, 92($t0)
+
+
+	addi $t0, $t0, 256
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 28($t0)
+	sw $t1, 44($t0)
+	sw $t1, 48($t0)
+	sw $t1, 52($t0)
+	sw $t1, 56($t0)
+	sw $t1, 64($t0)
+	sw $t1, 68($t0)
+	sw $t1, 72($t0)
+	sw $t1, 92($t0)
+	
+	addi $t0, $t0, 256
+	sw $t1, 12($t0)
+	sw $t1, 28($t0)
+	sw $t1, 44($t0)
+	sw $t1, 56($t0)
+	sw $t1, 64($t0)
+	sw $t1, 72($t0)
+	sw $t1, 92($t0)
+
+
+
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 28($t0)
+	sw $t1, 44($t0)
+	sw $t1, 56($t0)
+	sw $t1, 64($t0)
+	sw $t1, 76($t0)
+	sw $t1, 92($t0)
+	
+	li $t0, EXIT
+	# draw exit
+	sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 20($t0)
+	sw $t1, 32($t0)
+	sw $t1, 40($t0)
+	sw $t1, 44($t0)
+	sw $t1, 48($t0)
+	sw $t1, 56($t0)
+	sw $t1, 60($t0)
+	sw $t1, 64($t0)
+	sw $t1, 68($t0)
+	sw $t1, 72($t0)
+	
+	
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 20($t0)
+	sw $t1, 32($t0)
+	sw $t1, 44($t0)
+	sw $t1, 64($t0)
+
+
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 24($t0)
+	sw $t1, 28($t0)
+	sw $t1, 44($t0)
+	sw $t1, 64($t0)
+	
+
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 20($t0)
+	sw $t1, 32($t0)
+	sw $t1, 44($t0)
+	sw $t1, 64($t0)
+	
+	addi $t0, $t0, 256
+	sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 20($t0)
+	sw $t1, 32($t0)
+	sw $t1, 40($t0)
+	sw $t1, 44($t0)
+	sw $t1, 48($t0)
+	sw $t1, 64($t0)	
+	
+	# darw the arrow
+	li $t0, START_ARROW
+	li $t1, ARROW_COLOR
+	sw $t1, 8($t0)
+	sw $t1, 260($t0)
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 524($t0)
+	sw $t1, 520($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 772($t0)
+	sw $t1, 1032($t0)
+	
+	li $t2, 0	#t2 = 0 means start, 1 means exit
+
+menu_loop:
+	li $t9, 0xffff0000 	# set t9 to keyboard
+	lw $t8, 0($t9)
+	beq $t8, 1, menu_keypress_happened
+	
+menu_sleep:
+	li $v0, 32
+	li $a0, SLEEP		# sleep for 40ms
+	syscall
+        
+        j menu_loop
+
+menu_keypress_happened:
+	lw $t8, 4($t9)
+	beq $t8, 0x70, start_or_exit	# else if key press = p branch then start game
+	beq $t8, 0x77, menu_up		# if key press = w branch to up
+	beq $t8, 0x73, menu_down	# else if key press = s branch to down
+	j menu_sleep
+
+menu_up:
+	beqz $t2, menu_sleep
+	li $t0, START_ARROW
+	li $t1, ARROW_COLOR
+	sw $t1, 8($t0)
+	sw $t1, 260($t0)
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 524($t0)
+	sw $t1, 520($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 772($t0)
+	sw $t1, 1032($t0)
+
+	li $t0, EXIT_ARROW
+	li $t1, BLACK
+	sw $t1, 8($t0)
+	sw $t1, 260($t0)
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 524($t0)
+	sw $t1, 520($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 772($t0)
+	sw $t1, 1032($t0)
+
+	li $t2, 0
+	j menu_sleep
+	
+	
+menu_down:
+	bnez $t2, menu_sleep
+	li $t0, EXIT_ARROW
+	li $t1, ARROW_COLOR
+	sw $t1, 8($t0)
+	sw $t1, 260($t0)
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 524($t0)
+	sw $t1, 520($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 772($t0)
+	sw $t1, 1032($t0)
+
+	li $t0, START_ARROW
+	li $t1, BLACK
+	sw $t1, 8($t0)
+	sw $t1, 260($t0)
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 524($t0)
+	sw $t1, 520($t0)
+	sw $t1, 528($t0)
+	sw $t1, 532($t0)
+	sw $t1, 772($t0)
+	sw $t1, 1032($t0)
+
+	li $t2, 1
+	j menu_sleep
+
+
+start_or_exit:
+	bnez $t2, END_PROGRAM
+
+game_start:
+	jal clean_all
 	li $t0, BASE_ADDRESS	# t0 stores base address
 	li $t1, WHITE		# t1 stores white
 	li $t2, YELLOW		# t2 stores yellow
@@ -848,5 +1080,6 @@ remove_platform_loop:
 
 #####################################################################
 END_PROGRAM:
+	jal clean_all
 	li $v0, 10 # terminate the program gracefully
 	syscall

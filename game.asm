@@ -19,7 +19,7 @@
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
 # 1. Fail condition
-# 2. (fill in the feature, if any)
+# 2. moving platform
 # 3. (fill in the feature, if any)
 # ... (add more if necessary)
 #
@@ -287,13 +287,35 @@ gg:
 
 
 move_platform:
-	#s4 is the address of the platform
+	#s4 is the address of the platform, s7 = 0 moves right 1 moves left
 	li $s6, GRAVITY_LOOP
+	li $t0, GRAY
+	beqz $s7, move_check_right	
+move_check_left:
+	lw $t1, -4($s4)
+	sub $t1, $t1, $t0
+	bnez $t1, finish_check
+	li $s7, 0
+	j finish_check
+move_check_right:
+	lw $t1, 40($s4)
+	sub $t1, $t1, $t0
+	bnez $t1, finish_check
+	li $s7, 1
 	
-	
+finish_check:
 	
 	add $a0, $s4, $zero
 	jal remove_platform
+	beqz $s7, moving_right
+	addi $s4, $s4, -4
+	add $a0, $s4, $zero
+	jal draw_platform
+	j finish_move_platform
+
+	
+	
+moving_right:
 	addi $s4, $s4, 4
 	add $a0, $s4, $zero
 	jal draw_platform

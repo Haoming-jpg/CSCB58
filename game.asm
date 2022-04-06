@@ -48,10 +48,15 @@
 .eqv CAT_X_LEN 9
 .eqv CAT_Y_LEN 7
 .eqv SLEEP 40
-.eqv GRAVITY_LOOP 1
+.eqv GRAVITY_LOOP 5
 .eqv points 0x1000DC00		# x = 60
 .eqv FIRST_G 0x10009944 	# 25, 17
 .eqv SECOND_G 0x10009994 	# 25, 37
+.eqv L_COIN 252		# left offset of coin
+.eqv R_COIN 260		# right offset of coin
+.eqv D_COIN 512		# down offset of coin
+
+
 .text
 .globl main
 main:
@@ -62,7 +67,6 @@ main:
 	li $t4, PINK		# t4 stores pink
 	li $t5, CAYN		# t5 stores cayn
 	li $t6, BROWN		# t6 stores brown
-	li $t7, MID_ADDRESS	# t7 stores mid_address
 	
 	# draw a cat
 	sw $t1, 548($t0)
@@ -130,48 +134,21 @@ main:
 	sw $t4, 2616($t0)
 	
 	# draw 3 basic platform
-	# first one x = 11 y = 28
-	sw $t6, 2844($t0)
-	sw $t6, 2848($t0)
-	sw $t6, 2852($t0)
-	sw $t6, 2856($t0)
-	sw $t6, 2860($t0)
-	sw $t6, 2864($t0)
-	sw $t6, 2868($t0)
-	sw $t6, 2872($t0)
-	sw $t6, 2876($t0)
-	sw $t6, 2880($t0)
-	
-	#second one, x = 30, y = 25 - 35, and also a ball on the platform
-	sw $t6, 7780($t0)
-	sw $t6, 7784($t0)
-	sw $t6, 7788($t0)
-	sw $t6, 7792($t0)
-	sw $t6, 7796($t0)
-	sw $t6, 7800($t0)
-	sw $t6, 7804($t0)
-	sw $t6, 7808($t0)
-	sw $t6, 7812($t0)
-	sw $t6, 7816($t0)
-	# a ball(simple version)
-	sw $t5, 7036($t0)
-	sw $t5, 7288($t0)
-	sw $t5, 7296($t0)
-	sw $t5, 7548($t0)
-	
-	#third one, x = 50 y = 40-50
-	sw $t6, 4768($t7)
-	sw $t6, 4772($t7)
-	sw $t6, 4776($t7)
-	sw $t6, 4780($t7)
-	sw $t6, 4784($t7)
-	sw $t6, 4788($t7)
-	sw $t6, 4792($t7)
-	sw $t6, 4796($t7)
-	sw $t6, 4800($t7)
-	sw $t6, 4804($t7)
-	
+	# first one x = 11 y = 7
+	li $a0, 0x10008B1C
+	jal draw_platform
 
+	#second one, x = 24, y = 25 offset 6244
+	li $a0, 0x10009864
+	jal draw_platform
+	
+	#third one, x = 37 y = 12 offset 9520
+	li $a0, 0x1000A530
+	jal draw_platform
+	
+	# forth one, x = 50, y = 44 offset 12976
+	li $a0, 0x1000B2B0
+	jal draw_platform
 	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
@@ -399,6 +376,7 @@ left_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
+	
 up:
 	add $t0, $s1, $zero	# t0 stores the address of the cat
 
@@ -794,9 +772,22 @@ gg_restart:
 	addi $sp, $sp, 4
 	j main
 	j gg_keypress_return
-
-
-
+#####################################################################
+#void draw_platforms(int start address), every platform have length 10
+draw_platform:
+	add $t7, $zero, $a0
+	li $t6, BROWN
+	li $t8, 40
+	
+	
+darw_platform_loop:
+	sw $t6, 0($t7)
+	addi $t7, $t7, 4
+	addi $t8, $t8, -4
+	bnez $t8, darw_platform_loop
+	
+	jr $ra
+#####################################################################
 #####################################################################
 END_PROGRAM:
 	li $v0, 10 # terminate the program gracefully

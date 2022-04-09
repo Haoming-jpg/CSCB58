@@ -50,7 +50,7 @@
 .eqv CAT_Y_LEN 7
 .eqv SLEEP 40
 .eqv GRAVITY_LOOP 8
-.eqv points 0x1000DC00		# x = 60
+.eqv POINT 0x1000BB28		# x = 59, y = 10
 .eqv FIRST_G 0x10009944 	# 25, 17
 .eqv SECOND_G 0x10009994 	# 25, 37
 .eqv PF1 0x10008B1C		# x = 11 y = 7
@@ -305,6 +305,7 @@ game_start:
 	li $t5, CAYN		# t5 stores cayn
 	li $t6, BROWN		# t6 stores brown
 	
+	
 	# draw a cat
 	sw $t1, 548($t0)
 	sw $t1, 552($t0)
@@ -389,8 +390,23 @@ game_start:
 	#draw the initial coin
 	li $a0, COIN1
 	jal draw_coin
-
 	
+	# draw 0
+	li $t7, POINT
+	sw $t1, 0($t7)
+	sw $t1, 256($t7)
+	sw $t1, 512($t7)
+	sw $t1, 768($t7)
+	sw $t1, 1024($t7)
+	addi $t7, $t7, 4
+	sw $t1, 0($t7)
+	sw $t1, 1024($t7)
+	addi $t7, $t7, 4
+	sw $t1, 0($t7)
+	sw $t1, 256($t7)
+	sw $t1, 512($t7)
+	sw $t1, 768($t7)
+	sw $t1, 1024($t7)
 	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
@@ -484,12 +500,16 @@ finish_gravity:
 	beqz $s6, move_platform
 	addi $s6, $s6, -1
 finish_move_platform:
-	addi $sp, $sp, -4	#now we need to check whether we get a point
+	addi $sp, $sp, -4	#now we need to check whether we get a point, push 3 argument to the stack
 	sw $s0, 0($sp)
-	addi $sp, $sp, -4	#now we need to check whether we get a point
+	addi $sp, $sp, -4	
 	sw $s1, 0($sp)
+	addi $sp, $sp, -4
+	sw $s2, 0($sp)
 	jal check_point
 	lw $s1, 0($sp)		# restore the index of coin
+	addi $sp, $sp, 4
+	lw $s2, 0($sp)		# restore the score
 	addi $sp, $sp, 4
 sleep:
 	li $v0, 32
@@ -576,7 +596,6 @@ is_keypress_happened:
 	li $t9, 0xffff0000 	# set t9 to keyboard
 	lw $t8, 0($t9)
 	beq $t8, 1, keypress_happened
-#	j down		# this is the gravity
 key_press_return:
 	addi $sp, $sp, -4	# push return value(new cat address)
 	sw $t7, 0($sp)
@@ -1123,8 +1142,10 @@ draw_coin:
 #####################################################################
 
 #####################################################################
-# int check_point(int cat_address int coin_index) return the new index of coin
+# int check_point(int cat_address, int coin_index, int score) return the new index of coin and new score
 check_point:
+	lw $s2, 0($sp)		# load score
+	addi $sp, $sp, 4	
 	lw $s1, 0($sp)		# load coin_index
 	addi $sp, $sp, 4	
 	lw $t0, 0($sp)		# load cat_address
@@ -1181,6 +1202,11 @@ get_points:
 	add $a0, $zero, $t0
 	jal draw_cat
 	
+	add $a0, $zero, $s2
+	jal increase_score
+	lw $s2, 0($sp)
+	addi $sp, $sp, 4	# restore score
+	
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4	# restore ra
 
@@ -1196,11 +1222,180 @@ next_index1:
 next_index_2:
 	li $s1, 2
 end_check:
-	# the index doesn't change
+	# put return value to stack
+	addi $sp, $sp, -4
+	sw $s2, 0($sp)
 	addi $sp, $sp, -4
 	sw $s1, 0($sp)
 	jr $ra
 #####################################################################
+
+#####################################################################
+# int increase_score(int score) return score + 1
+increase_score:
+	add $t0, $a0, $zero	# t0 is the current score
+	li $t1, WHITE
+	li $t2, POINT
+	li $t3, BLACK
+	
+	sw $t3, 0($t2)
+	sw $t3, 4($t2)
+	sw $t3, 8($t2)
+	sw $t3, 256($t2)
+	sw $t3, 260($t2)
+	sw $t3, 264($t2)
+	sw $t3, 512($t2)
+	sw $t3, 516($t2)
+	sw $t3, 520($t2)
+	sw $t3, 768($t2)
+	sw $t3, 772($t2)
+	sw $t3, 776($t2)
+	sw $t3, 1024($t2)
+	sw $t3, 1028($t2)
+	sw $t3, 1032($t2)
+	
+	addi $t0, $t0, 1
+	li $t4, 1
+	beq $t0, $t4, draw1
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw2
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw3
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw4
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw5
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw6
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw7
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw8
+	addi $t4, $t4, 1
+	beq $t0, $t4, draw9
+	
+draw1:
+	sw $t1, 0($t2)
+	sw $t1, 256($t2)
+	sw $t1, 512($t2)
+	sw $t1, 768($t2)
+	sw $t1, 1024($t2)
+	j finish_add
+	
+draw2:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 264($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 768($t2)
+	sw $t1, 1024($t2)
+	sw $t1, 1028($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+	
+draw3:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 264($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1024($t2)
+	sw $t1, 1028($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+	
+draw4:
+	sw $t1, 0($t2)
+	sw $t1, 8($t2)
+	sw $t1, 256($t2)
+	sw $t1, 264($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+	
+draw5:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 256($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1024($t2)
+	sw $t1, 1028($t2)
+	sw $t1, 1032($t2)
+	j finish_add	
+
+
+draw6:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 256($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 768($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1024($t2)
+	sw $t1, 1028($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+
+
+draw7:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 264($t2)
+	sw $t1, 520($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+
+draw8:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 256($t2)
+	sw $t1, 264($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 768($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1024($t2)
+	sw $t1, 1028($t2)
+	sw $t1, 1032($t2)
+	j finish_add
+draw9:
+	sw $t1, 0($t2)
+	sw $t1, 4($t2)
+	sw $t1, 8($t2)
+	sw $t1, 256($t2)
+	sw $t1, 264($t2)
+	sw $t1, 512($t2)
+	sw $t1, 516($t2)
+	sw $t1, 520($t2)
+	sw $t1, 776($t2)
+	sw $t1, 1032($t2)
+	
+finish_add:
+	addi $sp, $sp, -4
+	sw $t0, 0($sp)
+	jr $ra
+#####################################################################
+
 
 
 

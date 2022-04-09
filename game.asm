@@ -53,9 +53,6 @@
 .eqv points 0x1000DC00		# x = 60
 .eqv FIRST_G 0x10009944 	# 25, 17
 .eqv SECOND_G 0x10009994 	# 25, 37
-.eqv L_COIN 252		# left offset of coin
-.eqv R_COIN 260		# right offset of coin
-.eqv D_COIN 512		# down offset of coin
 .eqv PF1 0x10008B1C		# x = 11 y = 7
 .eqv PF2 0x10009864 		# x = 24, y = 25 offset 6244
 .eqv PF3 0x1000A530		# x = 37 y = 12 offset 9520
@@ -64,7 +61,10 @@
 .eqv EXIT 0x10009E40		# x = 30, y = 16
 .eqv START_ARROW 0x100094AC	# x = 20, y = 43
 .eqv EXIT_ARROW 0x10009E90	# x = 30, y = 36
+.eqv COIN1 0x10008830		# x = 8, y = 12
+.eqv COIN2 0x10009578		# x = 21, y = 30
 
+.eqv COIN4 0x1000AFC4		# x = 47, y = 49
 
 
 .text
@@ -387,9 +387,15 @@ game_start:
 	li $a0, PF4
 	jal draw_platform
 	
+	#draw the initial coin
+	li $a0, COIN2
+	jal draw_coin
+
+	
+	
 	#draw fire at bottom
 	li $t7, FIREBOTTOM	# t7 = the address of firebottom
-
+	
 	li $t8, 32
 
 FIRE_L1:
@@ -452,7 +458,7 @@ draw_right_wall:
 
 
 
-	li $s0, CAT_INITIAL	# t7 = address of initial cat(top left)
+	li $s0, CAT_INITIAL	# s0 = address of initial cat(top left)
 	li $s6, GRAVITY_LOOP	# set the loop of gravity
 	li $s5, 0		# if s5 = -1 then gg
 	li $s7, 0		# s7 is for moving platformn, if 0 then go right if 1 then go left
@@ -1076,6 +1082,20 @@ remove_platform_loop:
 	
 	jr $ra
 #####################################################################
+
+#####################################################################
+# void draw_coin(int coin address)
+draw_coin:
+	add $t7, $zero, $a0	#t0 is the address of start index
+	li $t2, YELLOW
+	sw $t2, 0($t7)
+	sw $t2, 252($t7)
+	sw $t2, 260($t7)
+	sw $t2, 512($t7)
+	jr $ra
+#####################################################################
+
+
 
 #####################################################################
 END_PROGRAM:

@@ -61,10 +61,9 @@
 .eqv EXIT 0x10009E40		# x = 30, y = 16
 .eqv START_ARROW 0x100094AC	# x = 20, y = 43
 .eqv EXIT_ARROW 0x10009E90	# x = 30, y = 36
-.eqv COIN1 0x10008830		# x = 8, y = 12
-.eqv COIN2 0x10009578		# x = 21, y = 30
-
-.eqv COIN4 0x1000AFC4		# x = 47, y = 49
+.eqv COIN0 0x10008830		# x = 8, y = 12
+.eqv COIN1 0x10009578		# x = 21, y = 30
+.eqv COIN2 0x1000AFC4		# x = 47, y = 49
 
 
 .text
@@ -388,7 +387,7 @@ game_start:
 	jal draw_platform
 	
 	#draw the initial coin
-	li $a0, COIN2
+	li $a0, COIN1
 	jal draw_coin
 
 	
@@ -463,6 +462,8 @@ draw_right_wall:
 	li $s5, 0		# if s5 = -1 then gg
 	li $s7, 0		# s7 is for moving platformn, if 0 then go right if 1 then go left
 	li $s4, PF3		# PF3 is the mvoing platform
+	li $s1, 1		# s1 is the current coin index(base 0)
+	li $s2, 0		# s2 is the current marks
 	
 main_loop:
 	# main loop of game
@@ -483,8 +484,13 @@ finish_gravity:
 	beqz $s6, move_platform
 	addi $s6, $s6, -1
 finish_move_platform:
-
-
+	addi $sp, $sp, -4	#now we need to check whether we get a point
+	sw $s0, 0($sp)
+	addi $sp, $sp, -4	#now we need to check whether we get a point
+	sw $s1, 0($sp)
+	jal check_point
+	lw $s1, 0($sp)		# restore the index of coin
+	addi $sp, $sp, 4
 sleep:
 	li $v0, 32
 	li $a0, SLEEP		# sleep for 40ms
@@ -584,6 +590,9 @@ keypress_happened:
 	beq $t8, 0x77, up	# if key press = w branch to up
 	beq $t8, 0x70, restart	# else if key press = p branch to restart
 	j key_press_return
+	
+	
+	
 right:
 	add $t0, $t7, $zero	# t0 stores the address of the cat
 	addi $t0, $t0, 28
@@ -604,8 +613,8 @@ right_collision_loop:
 	addi $t0, $t0, 256
 	addi $t3, $t3, -1
 	bnez $t3, right_collision_loop
-	
-	
+
+right_move:	
 	addi $sp, $sp, -4	# push ra
 	sw $ra, 0($sp)
 	add $a0, $zero, $t7	# get the address of cat
@@ -618,6 +627,8 @@ right_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
+	
+	
 	
 left:
 	add $t0, $t7, $zero	# t0 stores the address of the cat
@@ -654,6 +665,9 @@ left_collision_loop:
 	lw $ra, 0($sp)		# restore ra
 	addi $sp, $sp, 4
 	j key_press_return
+	
+	
+	
 	
 up:
 	add $t0, $t7, $zero	# t0 stores the address of the cat
@@ -1084,16 +1098,110 @@ remove_platform_loop:
 #####################################################################
 
 #####################################################################
+# void remove_coin(int coin address)
+remove_coin:
+	add $t8, $zero, $a0	#t0 is the address of start index
+	li $t2, BLACK
+	sw $t2, 0($t8)
+	sw $t2, 252($t8)
+	sw $t2, 260($t8)
+	sw $t2, 512($t8)
+	jr $ra
+
+#####################################################################
+
+#####################################################################
 # void draw_coin(int coin address)
 draw_coin:
-	add $t7, $zero, $a0	#t0 is the address of start index
+	add $t8, $zero, $a0	#t0 is the address of start index
 	li $t2, YELLOW
-	sw $t2, 0($t7)
-	sw $t2, 252($t7)
-	sw $t2, 260($t7)
-	sw $t2, 512($t7)
+	sw $t2, 0($t8)
+	sw $t2, 252($t8)
+	sw $t2, 260($t8)
+	sw $t2, 512($t8)
 	jr $ra
 #####################################################################
+
+#####################################################################
+# int check_point(int cat_address int coin_index) return the new index of coin
+check_point:
+	lw $s1, 0($sp)		# load coin_index
+	addi $sp, $sp, 4	
+	lw $t0, 0($sp)		# load cat_address
+	addi $sp, $sp, 4	
+	
+	
+	li $t1, YELLOW
+	beqz $s1, index_0	# index 0
+	addi $s1, $s1, -1
+	beqz $s1, index_1	# index 1
+	# index 2
+	li $s1, 2
+	li $t2, COIN2
+	li $t5, COIN0
+	j go_check
+index_0:
+	li $s1, 0
+	li $t2, COIN0
+	li $t5, COIN1
+	j go_check
+index_1:
+	li $s1, 1
+	li $t2 COIN1
+	li $t5, COIN2
+go_check:
+	lw $t3, 0($t2)
+	sub $t4, $t3, $t1
+	bnez $t4, get_points
+	
+	lw $t3, 252($t2)
+	sub $t4, $t3, $t1
+	bnez $t4, get_points
+	
+	lw $t3, 260($t2)
+	sub $t4, $t3, $t1
+	bnez $t4, get_points
+	
+	lw $t3, 512($t2)
+	sub $t4, $t3, $t1
+	bnez $t4, get_points
+	j end_check
+
+
+get_points:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)		#save ra
+	
+	add $a0, $zero, $t2
+	jal remove_coin
+	
+	add $a0, $zero, $t5
+	jal draw_coin
+	
+	add $a0, $zero, $t0
+	jal draw_cat
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4	# restore ra
+
+	beqz $s1, next_index1	# should go index 1
+	addi $s1, $s1, -1
+	beqz $s1, next_index_2	# should go index 2
+	# should go index 0
+	li $s1, 0
+	j end_check
+next_index1:
+	li $s1, 1
+	j end_check
+next_index_2:
+	li $s1, 2
+end_check:
+	# the index doesn't change
+	addi $sp, $sp, -4
+	sw $s1, 0($sp)
+	jr $ra
+#####################################################################
+
 
 
 

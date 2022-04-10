@@ -21,7 +21,8 @@
 # 1. Fail condition
 # 2. moving platform
 # 3. start menu
-# ... (add more if necessary)
+# 4. score
+# 5. win condition
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
@@ -475,7 +476,7 @@ draw_right_wall:
 
 	li $s0, CAT_INITIAL	# s0 = address of initial cat(top left)
 	li $s6, GRAVITY_LOOP	# set the loop of gravity
-	li $s5, 0		# if s5 = -1 then gg
+	li $s5, 0		# if s5 < 0 then gg, if s5 > 0 then win
 	li $s7, 0		# s7 is for moving platformn, if 0 then go right if 1 then go left
 	li $s4, PF3		# PF3 is the mvoing platform
 	li $s1, 1		# s1 is the current coin index(base 0)
@@ -483,6 +484,7 @@ draw_right_wall:
 	
 main_loop:
 	# main loop of game
+	bgtz $s5, you_win
 	ble $s5, -1, gg
 	j check_gg
 	
@@ -511,6 +513,10 @@ finish_move_platform:
 	addi $sp, $sp, 4
 	lw $s2, 0($sp)		# restore the score
 	addi $sp, $sp, 4
+	blt $s2, 10, sleep	# if score < 10 then continue
+	jal clean_all
+	jal draw_win
+	li $s5, 1
 sleep:
 	li $v0, 32
 	li $a0, SLEEP		# sleep for 40ms
@@ -549,6 +555,9 @@ gg:
 	jal draw_gg
 	j sleep
 
+you_win:
+	jal gg_keypress_happened
+	j sleep
 
 move_platform:
 	#s4 is the address of the platform, s7 = 0 moves right 1 moves left
@@ -1273,6 +1282,8 @@ increase_score:
 	beq $t0, $t4, draw8
 	addi $t4, $t4, 1
 	beq $t0, $t4, draw9
+	addi $t4, $t4, 1
+	beq $t0, $t4, finish_add
 	
 draw1:
 	sw $t1, 0($t2)
@@ -1390,12 +1401,98 @@ draw9:
 	sw $t1, 776($t2)
 	sw $t1, 1032($t2)
 	
+	
 finish_add:
 	addi $sp, $sp, -4
 	sw $t0, 0($sp)
 	jr $ra
 #####################################################################
 
+#####################################################################
+# void draw_win() draw you win!
+draw_win:
+	li, $t0, WHITE
+	li, $t1, FIRST_G
+	# draw you win!
+	sw $t0, 0($t1)
+	sw $t0, 16($t1)
+	sw $t0, 28($t1)
+	sw $t0, 32($t1)
+	sw $t0, 44($t1)
+	sw $t0, 56($t1)
+	sw $t0, 72($t1)
+	sw $t0, 88($t1)
+	sw $t0, 96($t1)
+	sw $t0, 100($t1)
+	sw $t0, 104($t1)
+	sw $t0, 112($t1)
+	sw $t0, 124($t1)
+	sw $t0, 136($t1)
+	
+	addi $t1, $t1, 256
+	sw $t0, 0($t1)
+	sw $t0, 16($t1)
+	sw $t0, 24($t1)
+	sw $t0, 36($t1)
+	sw $t0, 44($t1)
+	sw $t0, 56($t1)
+	sw $t0, 72($t1)
+	sw $t0, 88($t1)
+	sw $t0, 100($t1)
+	sw $t0, 112($t1)
+	sw $t0, 116($t1)
+	sw $t0, 124($t1)
+	sw $t0, 136($t1)
+
+	addi $t1, $t1, 256
+	sw $t0, 4($t1)
+	sw $t0, 8($t1)
+	sw $t0, 12($t1)
+	sw $t0, 24($t1)
+	sw $t0, 36($t1)
+	sw $t0, 44($t1)
+	sw $t0, 56($t1)
+	sw $t0, 72($t1)
+	sw $t0, 80($t1)
+	sw $t0, 88($t1)
+	sw $t0, 100($t1)
+	sw $t0, 112($t1)
+	sw $t0, 120($t1)
+	sw $t0, 124($t1)
+	sw $t0, 136($t1)
+	
+	addi $t1, $t1, 256
+	sw $t0, 8($t1)
+	sw $t0, 24($t1)
+	sw $t0, 36($t1)
+	sw $t0, 44($t1)
+	sw $t0, 56($t1)
+	sw $t0, 72($t1)
+	sw $t0, 76($t1)
+	sw $t0, 84($t1)
+	sw $t0, 88($t1)
+	sw $t0, 100($t1)
+	sw $t0, 112($t1)
+	sw $t0, 124($t1)
+	
+	addi $t1, $t1, 256
+	sw $t0, 8($t1)
+	sw $t0, 28($t1)
+	sw $t0, 32($t1)
+	sw $t0, 48($t1)
+	sw $t0, 52($t1)
+	sw $t0, 72($t1)
+	sw $t0, 88($t1)
+	sw $t0, 96($t1)
+	sw $t0, 100($t1)
+	sw $t0, 104($t1)
+	sw $t0, 112($t1)
+	sw $t0, 124($t1)
+	sw $t0, 136($t1)
+	
+	jr $ra
+
+#####################################################################
 
 
 

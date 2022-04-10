@@ -23,6 +23,7 @@
 # 3. start menu
 # 4. score
 # 5. win condition
+# 6. enemies shoot back
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
@@ -65,6 +66,13 @@
 .eqv COIN0 0x10008830		# x = 8, y = 12
 .eqv COIN1 0x10009578		# x = 21, y = 30
 .eqv COIN2 0x1000AFC4		# x = 47, y = 49
+.eqv ENEMIE 0x1000B834		# x = 56, y = 13
+.eqv SHOOT0 0x1000B634		# x = 54 y = 13
+.eqv SHOOT1 0x1000B434		# x = 52 y = 13
+.eqv SHOOT2 0x1000B234		# x = 50 y = 13
+.eqv SHOOT3 0x1000B034		# x = 48 y = 13
+.eqv SHOOT4 0x1000AE34		# x = 46 y = 13
+
 
 
 .text
@@ -471,7 +479,22 @@ draw_right_wall:
 	addi $t8, $t8, -1
 	bnez $t8, draw_right_wall
 
-
+	# draw enemie
+	li $t0, ENEMIE
+	li $t1, RED
+	li $t2, CAYN
+	li $t3, BROWN
+	sw $t1, 0($t0)
+	sw $t3, 252($t0)
+	sw $t3, 260($t0)
+	sw $t2, 256($t0)
+	sw $t2, 504($t0)
+	sw $t2, 508($t0)
+	sw $t2, 512($t0)
+	sw $t2, 516($t0)
+	sw $t2, 520($t0)
+	li $t0, SHOOT0
+	sw $t1, 0($t0)
 
 
 	li $s0, CAT_INITIAL	# s0 = address of initial cat(top left)
@@ -481,6 +504,7 @@ draw_right_wall:
 	li $s4, PF3		# PF3 is the mvoing platform
 	li $s1, 1		# s1 is the current coin index(base 0)
 	li $s2, 0		# s2 is the current marks
+	li $s3, 0		# s3 is the shoot index
 	
 main_loop:
 	# main loop of game
@@ -496,12 +520,15 @@ not_gg:
 	lw $s0, 0($sp)		# get the new address of cat
 	addi $sp, $sp, 4
 	
-	
-	beqz $s6, do_gravity
+	bnez $s6, finish_move_platform
+	add $a0, $s3, $zero	#push the shoot index
+	jal shoot
+	add $s3, $zero, $v0	# restore the shoot index
+	j do_gravity
 finish_gravity:
-	beqz $s6, move_platform
-	addi $s6, $s6, -1
+	j move_platform
 finish_move_platform:
+	addi $s6, $s6, -1
 	addi $sp, $sp, -4	#now we need to check whether we get a point, push 3 argument to the stack
 	sw $s0, 0($sp)
 	addi $sp, $sp, -4	
@@ -1495,6 +1522,58 @@ draw_win:
 #####################################################################
 
 
+#####################################################################
+# int shoot(int shoot_index) return the new shoot index
+shoot:
+	add $t0, $a0, $zero	# t0 is the current shoot index
+	li $t1, 0
+	li $t2, BLACK
+	li $t3, RED
+	beq $t0, $t1, go_1
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_2
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_3
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_4
+	# should go to 0
+	li $t4, SHOOT4
+	sw $t2, 0($t4)
+	li $t4, SHOOT0
+	sw $t3, 0($t4)
+	li $v0, 0
+	j finish_shoot
+go_1:
+	li $t4, SHOOT0
+	sw $t2, 0($t4)
+	li $t4, SHOOT1
+	sw $t3, 0($t4)
+	li $v0, 1
+	j finish_shoot	
+go_2:
+	li $t4, SHOOT1
+	sw $t2, 0($t4)
+	li $t4, SHOOT2
+	sw $t3, 0($t4)
+	li $v0, 2
+	j finish_shoot
+go_3:
+	li $t4, SHOOT2
+	sw $t2, 0($t4)
+	li $t4, SHOOT3
+	sw $t3, 0($t4)
+	li $v0, 3
+	j finish_shoot
+go_4:
+	li $t4, SHOOT3
+	sw $t2, 0($t4)
+	li $t4, SHOOT4
+	sw $t3, 0($t4)
+	li $v0, 4
+finish_shoot:
+	jr $ra
+
+#####################################################################
 
 
 #####################################################################

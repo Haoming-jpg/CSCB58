@@ -3,7 +3,7 @@
 # CSCB58 Winter 2022 Assembly Final Project
 # University of Toronto, Scarborough
 #
-# Student: Haoming Hu, Student Number: 1006763986, UTorID: huhaomi2, official email: haomi.hu@mail.utoronto.ca
+# Student: Haoming Hu
 #
 # Bitmap Display Configuration:
 # - Unit width in pixels: 8 (update this as needed)
@@ -27,9 +27,9 @@
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
-#
+#                   https://youtu.be/BjwLBMfLmKo
 # Are you OK with us sharing the video with people outside course staff?
-# - yes / no / yes, and please share this project github link as well!
+# yes, https://github.com/Haoming-jpg/CSCB58
 #
 # Any additional information that the TA needs to know:
 # - (write here, if any)
@@ -68,10 +68,14 @@
 .eqv COIN2 0x1000AFC4		# x = 47, y = 49
 .eqv ENEMIE 0x1000B834		# x = 56, y = 13
 .eqv SHOOT0 0x1000B634		# x = 54 y = 13
-.eqv SHOOT1 0x1000B434		# x = 52 y = 13
-.eqv SHOOT2 0x1000B234		# x = 50 y = 13
-.eqv SHOOT3 0x1000B034		# x = 48 y = 13
-.eqv SHOOT4 0x1000AE34		# x = 46 y = 13
+.eqv SHOOT1 0x1000B534		# x = 53 y = 13
+.eqv SHOOT2 0x1000B434		# x = 52 y = 13
+.eqv SHOOT3 0x1000B334		# x = 51 y = 13
+.eqv SHOOT4 0x1000B234		# x = 50 y = 13
+.eqv SHOOT5 0x1000B134		# x = 49 y = 13
+.eqv SHOOT6 0x1000B034		# x = 48 y = 13
+.eqv SHOOT7 0x1000AF34		# x = 47 y = 13
+.eqv SHOOT8 0x1000AE34		# x = 46 y = 13
 
 
 
@@ -1536,8 +1540,16 @@ shoot:
 	beq $t0, $t1, go_3
 	addi $t1, $t1, 1
 	beq $t0, $t1, go_4
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_5
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_6
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_7
+	addi $t1, $t1, 1
+	beq $t0, $t1, go_8
 	# should go to 0
-	li $t4, SHOOT4
+	li $t4, SHOOT8
 	sw $t2, 0($t4)
 	li $t4, SHOOT0
 	sw $t3, 0($t4)
@@ -1570,6 +1582,35 @@ go_4:
 	li $t4, SHOOT4
 	sw $t3, 0($t4)
 	li $v0, 4
+	j finish_shoot
+go_5:
+	li $t4, SHOOT4
+	sw $t2, 0($t4)
+	li $t4, SHOOT5
+	sw $t3, 0($t4)
+	li $v0, 5
+	j finish_shoot
+go_6:
+	li $t4, SHOOT5
+	sw $t2, 0($t4)
+	li $t4, SHOOT6
+	sw $t3, 0($t4)
+	li $v0, 6
+	j finish_shoot
+go_7:
+	li $t4, SHOOT6
+	sw $t2, 0($t4)
+	li $t4, SHOOT7
+	sw $t3, 0($t4)
+	li $v0, 7
+	j finish_shoot
+go_8:
+	li $t4, SHOOT7
+	sw $t2, 0($t4)
+	li $t4, SHOOT8
+	sw $t3, 0($t4)
+	li $v0, 8
+
 finish_shoot:
 	jr $ra
 
